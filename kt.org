@@ -742,9 +742,9 @@
   in the Algorithm. We use the zero byte for this purpose.
 #+end_src
 #+begin_src go <<Methods>>=
-  func (root *Node) Search(t []byte, p []string) []match {
+  func (root *Node) Search(t []byte, p []string) []Match {
 	  t = append(t, 0)
-	  matches := make([]match, 0)
+	  matches := make([]Match, 0)
 	  v := root
 	  j := 0
 	  for j < len(t) - 1 {
@@ -758,7 +758,7 @@
   A match consists of a position and a pattern identifier.
 #+end_src
 #+begin_src go <<Types>>=
-  type match struct {
+  type Match struct {
 	  pos, pat int
   }
 #+end_src
@@ -780,7 +780,7 @@
 #+end_src
 #+begin_src go <<Store matches>>=
   for _, o := range c.output {
-	  match := *new(match)
+	  match := *new(Match)
 	  match.pos = j - len(p[o]) + 1
 	  match.pat = o
 	  matches = append(matches, match)
