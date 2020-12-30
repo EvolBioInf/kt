@@ -1,0 +1,19 @@
+\REQUIRE Text, $T\$$
+\REQUIRE Keyword tree of patterns $p_i, i=1,2,...$
+\ENSURE List of all matches of patterns in $T$
+\STATE{$j\leftarrow 1$} \COMMENT{Initialize position in $T$}
+\STATE{$v\leftarrow\mbox{root}$} \COMMENT{Initialize position in keyword tree}
+\REPEAT
+\WHILE{there is an edge $(v,v')$ labeled $T[j]$}
+\IF{$\mathrm{label}(v')=i$}
+\STATE{report match of $p_i$ at $j-|p_i|+1$}
+\ENDIF
+\STATE{$v\leftarrow v'$}
+\STATE{$j\leftarrow j+1$}
+\ENDWHILE
+\IF{$v=\mbox{root}$}
+\STATE{$j\leftarrow j+1$}
+\ELSE
+\STATE{$v\leftarrow f(v)$} \COMMENT{follow failure link}
+\ENDIF
+\UNTIL{$j>|T|$}
