@@ -15,3 +15,5 @@ $(EXE)_test.go: $(EXE).org
 	bash scripts/org2nw $(EXE).org | notangle -R$(EXE)_test.go | gofmt > $(EXE)_test.go
 clean:
 	rm -f $(EXE) *.go
+doc:
+	make -C doc

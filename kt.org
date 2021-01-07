@@ -1,9 +1,9 @@
 #+begin_src latex
   \section{Introduction}
   Programs like BLAST are based on exact matching of potentially large
-  sets of words, or \emph{patterns}. Such set matching is often done
-  using keyword trees~\cite{aho75:eff}. Say we'd like to match the five
-  patterns
+  sets of words, or \emph{patterns}, in a long \emph{text}. Such set
+  matching is often done using keyword trees~\cite{aho75:eff}. Say we'd
+  like to match the five patterns
   \begin{center}
     \begin{tabular}{ll}
       $p_1$ & \texttt{ATTT}\\
@@ -16,21 +16,21 @@
 
   The corresponding keyword tree consists of nodes, edges, and their
   labels. It is constructed by inserting each pattern into a growing
-  intermediate tree. We begin with the first pattern, draw a root, and a
-  node for each character in $p_1$ (Figure~\ref{fig:kt1}A). Except for
-  the root, each node, $v$, thus has one incoming edge labeled with a
-  character, $c=\mbox{in}(v)$.
+  intermediate tree. We begin with the first pattern, draw a root, node
+  1 in Figure~\ref{fig:kt1}A, and a node for each character in
+  $p_1$. Except for the root, each node, $v$, thus has one incoming edge
+  labeled with a character, $c=\mbox{in}(v)$.
 
-  The last node we add, is labeled 1 to mark that its path label, that
-  is, the concatenated characters of the path from the root to $v$,
-  corresponds to $p_1$. Next, we add $p_2$ by matching it from the root
-  into the tree. The prefix \texttt{ATT} is found and extended by
-  \texttt{G} (Figure~\ref{fig:kt1}B). Similarly, $p_3$ is inserted, but
-  stops at an internal node, which is labeled accordingly
+  The last node we add is labeled $p_1$ to mark that its path label,
+  that is, the concatenated characters of the path from the root to node
+  5, corresponds to $p_1$. Next, we add $p_2$ by matching it from the
+  root into the tree. The prefix \texttt{ATT} is found and extended at
+  node 4 by \texttt{C} (Figure~\ref{fig:kt1}B). Similarly, $p_3$ is
+  inserted, but stops at internal node 3, which is labeled $p_3$
   (Figure~\ref{fig:kt1}C). The next patter, $p_4$, cannot be matched
   into the tree, so it branches off at the root
-  (Figure~\ref{fig:kt1}D). This branch is branched by the addition of
-  the last pattern, $p_5$ (Figure~\ref{fig:kt1}E).
+  (Figure~\ref{fig:kt1}D). This branch is branched at node 7 by the
+  addition of the last pattern, $p_5$ (Figure~\ref{fig:kt1}E).
 
   Now each pattern is contained in the tree, and common prefixes such as
   \texttt{ATT} are summarized into unique path labels. This compression
@@ -49,20 +49,21 @@
       \end{tabular}
       }
     \end{center}
-    \caption{Stepwise construction of the keyword tree for $p_1=\texttt{ATTT}$ (\textbf{A}), $p_2=\texttt{ATTC}$ (\textbf{B}), 
-  $p_3=\texttt{AT}$ (\textbf{C}), $p_4=\texttt{TG}$ (\textbf{D}), and
-      $p_5=\texttt{TT}$ (\textbf{E}).}\label{fig:kt1}
+    \caption{Stepwise construction of a keyword tree by adding
+      $p_1=\texttt{ATTT}$ (\textbf{A}), $p_2=\texttt{ATTC}$
+      (\textbf{B}), $p_3=\texttt{AT}$ (\textbf{C}), $p_4=\texttt{TG}$
+      (\textbf{D}), and $p_5=\texttt{TT}$ (\textbf{E}).}\label{fig:kt1}
   \end{figure}
 
   Algorithm~\ref{alg:sm1} summarizes the steps for doing this. Matching
   begins at the first position in $T$, and at the root of the tree
   (lines 1 \& 2). While there is an edge $v\rightarrow v'$ labeled
-  $T[j]$ (line 4), check whether node $v'$ is labeled $i$ (line 5). If
-  so, output that $p_i$ was found (line 6). It ends at $j$, but it is
-  customary to report its start at $j-|p_i|+1$. Then move $v$ to $v'$
-  and advance to the next character in the text (lines 8 \& 9). With our
-  example tree and text, we'd match \texttt{AT} and report finding
-  $p_3$.
+  $T[j]$ (line 4), check whether node $v'$ is labeled $p_i$ (line 5). If
+  so, output that $p_i$ was found (line 6). The match to $p_i$ ends at
+  $j$, but it is customary to report its start rather than its end. The
+  start is at $j-|p_i|+1$. Then move $v$ to $v'$ in the tree and advance
+  to the next character in the text (lines 8 \& 9). With our example
+  tree and text, we'd match \texttt{AT} and report finding $p_3$.
 
   \begin{algorithm}
     \caption{Provisional set matching
@@ -75,17 +76,18 @@
   We've now run out of matches, at which point we might be tempted to
   give up and return to the root. However, the $\texttt{T}$ we last
   matched can be extended to possibly discover the patterns that start
-  with a \texttt{T}, $p_4$ or $p_5$. Returning to the root would require
-  matching that \texttt{T} a second time. To avoid this, every node,
-  $v$, has a \emph{failure link} connecting it to the node with the
-  longest path label that is a suffix of the path label of $v$. The
-  failure link of $v$ is found by visiting its parent's failure link,
-  $w=\mbox{fail}(\mbox{parent}(v))$. If that has an outgoing edge
-  $w\rightarrow w'$ with $\mbox{in}(w')=\mbox{in}(v)$, then the failure
-  link of $v$ points to $w'$. Otherwise, the procedure is repeated
-  until the root is reached. If no match is found in this way, the root
-  is set as the failure link. Figure~\ref{fig:kt2} shows our example
-  tree with failure links.
+  with a \texttt{T}, $p_4$ or $p_5$. Returning from node 3 to the root
+  would require matching that \texttt{T} a second time. To avoid this,
+  every node, $v$, has a \emph{failure link} connecting it to the node
+  with the longest path label that is a suffix of the path label of
+  $v$. The failure link of $v$ is found by visiting its parent's failure
+  link, $w=f(\mbox{parent}(v))$. If that has a child $w\rightarrow w'$
+  with $\mbox{in}(w')=\mbox{in}(v)$, the failure link of $v$ is set to
+  $w'$. In our example, the failure link of node 3 with path label
+  \texttt{AT} is node 7 with path label \texttt{T}. If no match is
+  found, the procedure is repeated until the root is reached. If no
+  failure link is found at all, use the root. Figure~\ref{fig:kt2} shows
+  our example tree with failure links.
 
   \begin{figure}
     \begin{center}
@@ -94,20 +96,40 @@
     \caption{The keyword tree in Figure~\ref{fig:kt1}E with failure links.}\label{fig:kt2}
   \end{figure}
 
-  In this way we find in our example text $p_4$ and $p_2$. At this point
-  we see the utility of the sentinel character, $\$$, which
-  terminates $T$. Otherwise, $T$ would end in a match and we'd attempt
-  to access a character beyond the end of $T$ in line 4.
+  In this way we find in our example text $p_4$ and $p_2$. Now we see
+  the utility of the sentinel character, $\$$, which terminates
+  $T$. Without it, $T$ would end in a match and we'd attempt to access a
+  character beyond the end of $T$ in line 4.
 
-  Another thing to realize at this point is that by walking down the
-  path of $p_2$, we've missed $p_5$. This is fixed by constructing
-  \emph{output sets} that consist of all patterns that lie along the
-  failure links connecting $v$ to the root. Figure~\ref{fig:kt3} shows
-  Figure~\ref{fig:kt2} with output sets, one of which, $\{1, 5\}$,
-  contains two patterns. Now, whenever \texttt{ATT} has been matched,
-  the match to \texttt{TT} is also detected. Algorithm~\ref{alg:sm2} is
-  derived from Algorithm~\ref{alg:sm1} by amending the output routine in
-  the if-clause of lines 5--7.
+  Another thing to realize at this stage of the algorithm is that by
+  walking down the path label of node 6 to find $p_2$, we've missed
+  $p_5$, the path label of node 9. This is fixed by constructing for
+  each node $v$ an \emph{output set} consisting of all the patterns
+  found following the failure links from $v$ to the
+  root. Figure~\ref{fig:kt3} shows Figure~\ref{fig:kt2} with output
+  sets, one of which, $\{p_1, p_5\}$, contains two patterns. Now,
+  whenever \texttt{ATT} has been matched, the match to \texttt{TT} is
+  also detected. Algorithm~\ref{alg:sm2} is derived from
+  Algorithm~\ref{alg:sm1} by amending the output routine in the
+  if-clause of lines 5--7.
+
+  The application of Algorithm~\ref{alg:sm2} to our example text,
+  $T=\texttt{ATGATTC}$ gives the following results:
+  \begin{center}
+  \begin{tabular}{cl}
+    \hline
+    Position & Pattern\\\hline
+  1	& \texttt{AT}\\
+  2	& \texttt{TG}\\
+  4	& \texttt{AT}\\
+  5	& \texttt{TT}\\
+  4	& \texttt{ATTC}\\\hline
+  \end{tabular}
+  \end{center}
+  The last three matches start at positions 4, 5, and again 4. So
+  although we always move forward in $T$, the match positions are not
+  necessarily ordered. This may confuse the user and we shall therefore
+  order the match positions before returning them.
 
   \begin{figure}
     \begin{center}
@@ -125,10 +147,12 @@
   \end{algorithm}
 
   To summarize, we construct a keyword tree by adding patterns, setting
-  the failure links, and constructing the output sets.
+  the failure links, and constructing the output sets. This tree can
+  then be used to efficiently look up the starting positions of all
+  patters in a text.
 
   \section{Implementation}
-  !Package \texttt{kt} implements set matching using keyword trees.
+  !Package \texttt{kt} implements set matching using a keyword tree.
 
   The package outline contains hooks for imports, types, variables,
   methods, and functions.
@@ -145,30 +169,32 @@
   //<<Functions>>
 #+end_src
 #+begin_src latex
-    We first construct a keyword tree, then use it to search a text.
-    \subsection{Construction}
-    A keyword tree consists of nodes and edges, both of which are
-    denoted in a structure with seven fields:
-    \begin{enumerate}
-    \item child node
-    \item sibling node
-    \item parent node
-    \item character on incoming edge
-    \item depth, that is, the length of the label from the root
-    \item output set
-    \item identifier
-    \end{enumerate}
+  We first construct a keyword tree, then use it to search a text.
+  \subsection{Construction}
+  A keyword tree consists of labeled nodes and labeled edges, both of
+  which are denoted in a structure with seven fields:
+  \begin{enumerate}
+  \item child node
+  \item sibling node
+  \item parent node
+  \item character on incoming edge
+  \item depth, that is, the length of the path label starting at the
+    root
+  \item output set
+  \item identifier
+  \end{enumerate}
 #+end_src
 #+begin_src go <<Types>>=
   type Node struct {
-	  child, sib, parent, fail *Node
-	  in byte
-	  depth int
-	  output []int
-	  id int
+	  Child, Sib, Parent, Fail *Node
+	  In byte
+	  Depth int
+	  Output []int
+	  Id int
   }
 #+end_src
 #+begin_src latex
+  \subsection{Function \texttt{NewKeywordTree}}
   !Function \texttt{NewKeywordTree} takes as argument a set of patterns
   !and returns the root of the tree representing these patterns.
 
@@ -187,18 +213,19 @@
   }
 #+end_src
 #+begin_src latex
-  A pattern is added by first finding the matching prefix, then adding
-  the rest.
+  A pattern is added by first finding the matching prefix in the
+  intermediary tree, then adding the rest.
 #+end_src
 #+begin_src go <<Add pattern>>=
   //<<Match prefix>>
   //<<Add rest>>
 #+end_src
 #+begin_src latex
-  The prefix is matched by moving along the pattern and into the
-  tree. For each character in the pattern, the matching child is located
-  and moved to. Since locating a child is also used later on when
-  finding a failure link, we delegate it to a method.
+  The prefix is matched simultaneously by moving along the pattern and
+  into the tree. For each character in the pattern, the matching child
+  is located in the tree and moved to. Since locating a child is also
+  used later when constructing failure links, we delegate it to a
+  method.
 #+end_src
 #+begin_src go <<Match prefix>>=
   v := root
@@ -213,22 +240,22 @@
   }
 #+end_src
 #+begin_src latex
-  To locate a match among the children of node $v$, start at its child
-  and move along its siblings.
+  To locate a match among the children of node $v$, start at the first
+  child and move along its siblings.
 #+end_src
 #+begin_src go <<Methods>>=
   func (v *Node) findChild(c byte) *Node {
-	  child := v.child
-	  for child != nil && child.in != c {
-		  child = child.sib
+	  child := v.Child
+	  for child != nil && child.In != c {
+		  child = child.Sib
 	  }
 	  return child
   }
 #+end_src
 #+begin_src latex
-  To add the rest of the pattern, extend $v$ by a node for every
-  character left in the pattern. The output set of the last node added
-  gets the pattern's label.
+  To add the rest of the pattern, extend $v$ by one node for every
+  character left in the pattern. The last node added gets the pattern's
+  label written into its output set.
 #+end_src
 #+begin_src go <<Add rest>>=
   for k := j; k < len(pattern); k++ {
@@ -237,17 +264,17 @@
 	  //<<Insert child>>
 	  v = child
   }
-  v.output = append(v.output, i)
+  v.Output = append(v.Output, i)
 #+end_src
 #+begin_src latex
-  We set the child's parent, the label of its incoming edge, its depth,
-  and its identifier.
+  To initialize a child, set its parent, the label of its incoming edge,
+  its depth, and its identifier.
 #+end_src
 #+begin_src go <<Initialize child>>=
-  child.parent = v
-  child.in = pattern[k]
-  child.depth = v.depth + 1
-  child.id = nodeId
+  child.Parent = v
+  child.In = pattern[k]
+  child.Depth = v.Depth + 1
+  child.Id = nodeId
   nodeId++
 #+end_src
 #+begin_src latex
@@ -258,120 +285,134 @@
   var nodeId = 1
 #+end_src
 #+begin_src latex
+  The \texttt{nodeId} also doubles as the node count, which the user may
+  want to access.
+
+  !\texttt{NodeCount} returns the number of nodes generated so far.
+#+end_src
+#+begin_src go <<Functions>>=
+  func NodeCount() int {
+	  return nodeId
+  }
+#+end_src
+#+begin_src latex
   The child is inserted as the latest sibling among its parent's
   children.
 #+end_src
 #+begin_src go <<Insert child>>=
-  if v.child == nil {
-	  v.child = child
+  if v.Child == nil {
+	  v.Child = child
   } else {
-	  cp := v.child
-	  for cp.sib != nil {
-		  cp = cp.sib
+	  cp := v.Child
+	  for cp.Sib != nil {
+		  cp = cp.Sib
 	  }
-	  cp.sib = child
+	  cp.Sib = child
   }
 #+end_src
 #+begin_src latex
   We have now added all patterns to the tree, which concludes the first
-  step in tree construction. In the second step, we add one failure link
+  step in tree construction. In the second step, we add the failure link
   to each node.
 
-  Failure links are constructed during breadth-first traversal of the
-  tree. The function \texttt{breadthFirst} takes as arguments the root
-  and a function applied to every node. This function might have
+  Failure links are constructed during a breadth-first traversal of the
+  tree. The function \texttt{BreadthFirst} takes as arguments the root
+  and a function applied to every node. This function might in turn have
   arguments, which are also part of the argument list of
-  \texttt{breadthFirst}. In our case, the function is called
+  \texttt{BreadthFirst}. In our case, the function is called
   \texttt{setFailureLink} and its argument is the default failure link,
   the root.
 #+end_src
 #+begin_src go <<Construct failure links>>=
-  breadthFirst(root, setFailureLink, root)
+  BreadthFirst(root, setFailureLink, root)
 #+end_src
 #+begin_src latex
-  The function \texttt{breadthFirst} traverses the tree and applies
+  The function \texttt{BreadthFirst} traverses the tree and applies
   \texttt{fn} to every node.
 #+end_src
 #+begin_src go <<Functions>>=
-  func breadthFirst(v *Node, fn nodeAction, args ...interface{}) {
+  func BreadthFirst(v *Node, fn NodeAction, args ...interface{}) {
 	  if v != nil {
-		  breadthFirst(v.sib, fn, args...)
+		  BreadthFirst(v.Sib, fn, args...)
 		  fn(v, args...)
-		  breadthFirst(v.child, fn, args...)
+		  BreadthFirst(v.Child, fn, args...)
 	  }
   }
 #+end_src
 #+begin_src latex
-  The function type \texttt{nodeAction} takes as argument a node and a
+  A function of type \texttt{NodeAction} takes as argument a node and a
   variadic list of empty interfaces.
 #+end_src
 #+begin_src go <<Types>>=
-  type nodeAction func(*Node, ...interface{})
+  type NodeAction func(*Node, ...interface{})
 #+end_src
 #+begin_src latex
   In the function \texttt{setFailureLink}, the root passed is retrieved
   via reflection. The failure links of nodes on levels zero (the root)
-  and one refer to the root. The failure links of all other nodes
+  and level one refer to the root. The failure links of all other nodes
   require a bit more thought.
 #+end_src
 #+begin_src go <<Functions>>=
   func setFailureLink(v *Node, args ...interface{}) {
 	  root := args[0].(*Node)
-	  if v.depth == 0 || v.depth == 1 {
-		  v.fail = root
+	  if v.Depth == 0 || v.Depth == 1 {
+		  v.Fail = root
 	  } else {
-		  //<<Search for link>>
+		  //<<Search for failure link>>
 	  }
   }
 #+end_src
 #+begin_src latex
   A failure link of some node $v$ on level 2 or greater is discovered by
-  walking up the chain of failure links starting at $v$'s parent. At
-  each node we look for a match to one of the children.
+  walking up the chain of failure links starting at $v$'s parent and
+  stopping at the root. At each node we look for a match to one of the
+  children. As soon as we've found such a match, we've got the failure
+  link. Without a match, the failure link remains in its default
+  position, that is, pointed to the root.
 #+end_src
-#+begin_src go <<Search for link>>=
-  v.fail = root
-  w := v.parent
-  for w.parent != nil {
-	  w = w.fail
-	  c := w.findChild(v.in)
+#+begin_src go <<Search for failure link>>=
+  v.Fail = root
+  w := v.Parent
+  for w.Parent != nil {
+	  w = w.Fail
+	  c := w.findChild(v.In)
 	  if c != nil {
-		  v.fail = c
+		  v.Fail = c
 		  break
 	  }
   }
 #+end_src
 #+begin_src latex
-  The output set is constructed by the same tree traversal, but with
-  \texttt{addOutput} instead of \texttt{setFailureLink} applied to each
-  node.
+  The output set is constructed by the same tree traversal used for
+  constructing failure links, but with \texttt{addOutput} instead of
+  \texttt{setFailureLink} applied to each node.
 #+end_src
 #+begin_src go <<Construct output sets>>=
-  breadthFirst(root, addOutput)
+  BreadthFirst(root, addOutput)
 #+end_src
 #+begin_src latex
-  From each node, $v$, the failure links are traversed up to the root
-  and any output found along the way is added to the output of $v$.
+  For each node, $v$, the failure links are traversed up to the root and
+  any output found along the way is added to the output of $v$.
 #+end_src
 #+begin_src go <<Functions>>=
   func addOutput(v *Node, args ...interface{}) {
-	  if v.parent == nil { return }
-	  for w := v.fail; w.parent != nil; w = w.fail{
-		  v.output = append(v.output, w.output...)
+	  if v.Parent == nil { return }
+	  for w := v.Fail; w.Parent != nil; w = w.Fail{
+		  v.Output = append(v.Output, w.Output...)
 	  }
   }
 #+end_src
 #+begin_src latex
   \subsection{Method \texttt{String}}
-  !\texttt{String} visualizes a keyword tree.
+  !\texttt{String} visualizes a keyword tree as plain text.
 
-  It is implemented by applying the function \texttt{writeText} to every node
+  It is implemented by applying the function \texttt{writeTree} to every node
   in the tree.
 #+end_src
 #+begin_src go <<Methods>>=
   func (n *Node) String() string {
 	  w := new(bytes.Buffer)
-	  breadthFirst(n, writeText, w)
+	  writeTree(n, w)
 	  return(w.String())
   }
 #+end_src
@@ -382,30 +423,124 @@
   "bytes"
 #+end_src
 #+begin_src latex
-  The function \texttt{writeText} writes the node's incoming edge label,
-  its identifier, parent, failure link, and output set.
+  The function \texttt{writeTree} writes the tree in Newick
+  format\footnote{\texttt{evolution.genetics.washington.edu/phylip/newick\char`_doc.html}}. This
+  consists of the following rules:
+  \begin{eqnarray*}
+    \mbox{tree} & \rightarrow & \mbox{children}[\mbox{label}][:\mbox{length}];\\
+    \mbox{children} & \rightarrow & \left(\mbox{child} \{,\mbox{children}\}\right)\\
+    \mbox{child} & \rightarrow & \mbox{children}[\mbox{label}][:\mbox{length}]\\
+    & \rightarrow & \mbox{label}
+  \end{eqnarray*}
+  These rules mean that
+  \begin{itemize}
+    \item A tree consists a root, indicated by the semicolon, an
+      optional root label and branch length to the root, and children.
+    \item Children are placed in paired parentheses and consists of the
+      first child followed by one or more sets of children separated by
+      commas.
+    \item A child may in turn have children. In this case it is an
+      \emph{internal node} and its children are followed by the child's
+      optional label and branch length. If the child has no children, it
+      is a \emph{leaf} represented by its label.
+  \end{itemize}
+  In other words, elements in curly brackets may appear zero, one, or
+  more than one times, and elements in square brackets may or may no
+  appear once. The other punctuation marks, colon, comma, semicolon, and
+  parentheses, are syntactically significant. The syntax also allows for
+  comments, which are placed in square brackets.
+
+  Consider our example tree in Figure~\ref{fig:kt3}. Its Newick
+  representation might look like
+  \begin{verbatim}
+  ((((5[T->9{1,5}],6[C->1{2}])4[T->9{5}])3[T->7{3}],
+  (8[G->1{4}],9[T->7{5}])7[T->1])2[A->1])1[->1];
+  \end{verbatim}
+  Here we have added comments to each node, for example
+  \begin{verbatim}
+  T->9{1,5}
+  \end{verbatim}
+  to node 5. This means node 5 has an incoming link labeled \texttt{T},
+  a failure link pointing to node 9, and an output set containing $p_1$
+  and $p_5$.
+
+  To implement the four rewrite rules of the Newick format, we traverse
+  the tree and ask four questions about each node, $v$, one for each
+  rule:
+  \begin{enumerate}
+  \item Is $v$ not a first child?
+  \item Is $v$ a leaf?
+  \item Is $v$ an internal node?
+  \item Is $v$ the root?
+  \end{enumerate}
 #+end_src
 #+begin_src go <<Functions>>=
-  func writeText(v *Node, args ...interface{}) {
-	  w := args[0].(*bytes.Buffer)
-	  //<<Write incoming character>>
-	  //<<Write parent and failure link>>
-	  //<<Write output set>>
+  func writeTree(v *Node, w *bytes.Buffer) {
+	  if v == nil { return }
+	  //<<Is $v$ not a first child?>>
+	  //<<Is $v$ a leaf?>>
+	  //<<Is $v$ an internal node?>>
+	  //<<Is $v$ the root?>>
   }
 #+end_src
 #+begin_src latex
-  The root's incoming edge label is the null character, which we
-  represent as underscore. Every node that is not the root starts with a
-  newline. Node labels are printed one-based.
+  A node is a first child, if its identifier is equal to the identifier
+  of it's parent's first child. If that isn't the case, it must be one
+  of the subsequent children, which are separated by a comma.
 #+end_src
-#+begin_src go <<Write incoming character>>=
-  c := v.in
-  if c == 0 {
-	  c = '_'
-  } else {
-	  fmt.Fprintf(w, "\n")
+#+begin_src go <<Is $v$ not a first child?>>=
+  if v.Parent != nil && v.Parent.Child.Id != v.Id {
+	  fmt.Fprint(w, ",")
   }
-  fmt.Fprintf(w, "%c->%d", c, v.id+1)
+#+end_src
+#+begin_src latex
+  If a node has no first child, it has no children at all and is hence a
+  leaf denoted by its label.
+#+end_src
+#+begin_src go <<Is $v$ a leaf?>>=
+  if v.Child == nil {
+	  label(v, w)
+  }
+#+end_src
+#+begin_src latex
+  If $v$ does have at least one child, it is an internal node. In this
+  case the subtree rooted on $v$ is placed in parentheses.
+#+end_src
+#+begin_src go <<Is $v$ an internal node?>>=
+  if v.Child != nil {
+	  fmt.Fprint(w, "(")
+  }
+  writeTree(v.Child, w)
+  writeTree(v.Sib, w)
+  if v.Child != nil {
+	  fmt.Fprint(w, ")")
+	  label(v, w)
+  }
+#+end_src
+#+begin_src latex
+  If $v$ has no parent, it's the root marked by a semicolon.
+#+end_src
+#+begin_src go <<Is $v$ the root?>>=
+  if v.Parent == nil {
+	  fmt.Fprint(w, ";")
+  }
+#+end_src
+#+begin_src latex
+  The label of a node consists of its identifier using one-based
+  counting, plus a comments section. The comment section contains the
+  character labeling the incoming branch, the failure link, and the
+  output set. The root doesn't have an incoming branch.
+#+end_src
+#+begin_src go <<Functions>>=
+  func label(v *Node, w *bytes.Buffer) {
+	  fmt.Fprintf(w, "%d[", v.Id+1)
+	  if v.Parent != nil {
+		  fmt.Fprintf(w, "%c", v.In)
+	  }
+	  fmt.Fprintf(w, "->%d", v.Fail.Id+1)
+	  //<<Write output set>>
+	  fmt.Fprintf(w, "]")
+  }
 #+end_src
 #+begin_src latex
   We import \texttt{fmt}.
@@ -414,321 +549,15 @@
   "fmt"
 #+end_src
 #+begin_src latex
-  The root has no parent, which we identify by 0.
-#+end_src
-#+begin_src go <<Write parent and failure link>>=
-  var p int
-  if v.parent != nil {
-	  p = v.parent.id + 1
-  } else {
-	  p = 0
-  }
-  fmt.Fprintf(w, "^%d->%d", p, v.fail.id+1)
-#+end_src
-#+begin_src latex
-  Only non-empty output sets are printed. Like node labels, pattern
-  labels are represented as one-based.
+  Empty output sets are ignored.
 #+end_src
 #+begin_src go <<Write output set>>=
-  l := len(v.output)
-  if l > 0 {
-	  fmt.Fprintf(w, "{%d", v.output[0]+1)
-	  for i := 1; i < l; i ++ {
-		  fmt.Fprintf(w, ",%d", v.output[i]+1)
+  if len(v.Output) > 0 {
+	  fmt.Fprintf(w, "{%d", v.Output[0]+1)
+	  for i := 1; i < len(v.Output); i++ {
+		  fmt.Fprintf(w, ",%d", v.Output[i]+1)
 	  }
 	  fmt.Fprintf(w, "}")
-  }
-#+end_src
-
-#+begin_src latex
-  \subsection{Method \texttt{WriteLatex}}
-  !\texttt{WriteLatex} converts a keyword tree to \LaTeX{}.
-
-  We implement this by first working out the coordinates of nodes. Then
-  we print the nodes, the match \& failure links, and the output sets.
-#+end_src
-#+begin_src go <<Methods>>=
-  func (root *Node) WriteLatex() string {
-	  w := new(bytes.Buffer)
-	  //<<Calculate y-coordinates>>
-	  //<<Calculate x-coordinates>>
-	  //<<Print nodes>>
-	  //<<Print match links>>
-	  //<<Print failure links>>
-	  //<<Print output sets>>
-	  return(w.String())
-  }
-#+end_src
-#+begin_src latex
-  To work out the y-coordinates, take another look at the keyword tree
-  in Figure~\ref{fig:kt3}. The bottom left hand corner of the image has
-  coordinates (0,0), the top right hand corner (width, maxDepth). A
-  y-coordinate is thus $\mbox{maxDepth}-\mbox{depth}$, which means we
-  need to compute the maximum depth.
-#+end_src
-#+begin_src go <<Calculate y-coordinates>>=
-  var maxDepth int
-  breadthFirst(root, findMaxDepth, &maxDepth)
-#+end_src
-#+begin_src latex
-  In \texttt{findMaxDepth}, we retrieves the variable \texttt{maxDepth}
-  by reflection and update it where appropriate.
-#+end_src
-#+begin_src go <<Functions>>=
-  func findMaxDepth(v *Node, args ...interface{}) {
-	  maxDepth := args[0].(*int)
-	  if v.depth > *maxDepth {
-		  *maxDepth = v.depth
-	  }
-  }
-#+end_src
-#+begin_src latex
-  The organizing principle of the x-coordinates is that the leaves are
-  spread evenly along the horizontal axis and a parent's position is in
-  the middle of its children. Thus we compute the horizontal distance
-  between leaves and, building on that, calculate the x-coordinate of
-  every node.
-#+end_src
-#+begin_src go <<Calculate x-coordinates>>=
-  //<<Compute distance between leaves>>
-  //<<Compute x-coordinates>>
-#+end_src
-#+begin_src latex
-  The distance between leaves is the width of the tree divided by the
-  number of leaves minus one. By default the number of leaves is
-  understood as the tree's width, but the user can set a different value.
-#+end_src
-#+begin_src go <<Compute distance between leaves>>=
-  var nl int
-  breadthFirst(root, countLeaves, &nl)
-  if width == 0 {
-	  width = float64(nl)
-  }
-  dist := width / (float64(nl) - 1.0)
-#+end_src
-#+begin_src latex
-  We declare the package variable \texttt{witdh}.
-#+end_src
-#+begin_src go <<Variables>>=
-  var width float64
-#+end_src
-#+begin_src latex
-  This has a getter,
-#+end_src
-#+begin_src go <<Functions>>=
-  func Width() float64 {
-	  return width
-  }
-#+end_src
-#+begin_src latex
-  and a setter that ensures a positive width.
-#+end_src
-#+begin_src go <<Functions>>=
-  func SetWidth(w float64) {
-	  if w > 0 {
-		  width = w
-	  }
-  }
-#+end_src
-#+begin_src latex
-  The function \texttt{countLeaves} takes as argument a node and a pointer to
-  an integer.
-#+end_src
-#+begin_src go <<Functions>>=
-  func countLeaves(n *Node, args ...interface{}) {
-	  nl := args[0].(*int)
-	  if n.child == nil {
-		  *nl = *nl + 1
-	  }
-  }
-#+end_src
-#+begin_src latex
-  To compute the x-coordinates, we need space to store
-  them. Conveniently, \texttt{nodeId} also counts the nodes, so we can
-  allocate a slice with \texttt{nodeId} entries and refer to a
-  particular entry by a node's ID. Then we traverse the tree
-  postorder~\cite[p. 334]{knu97:ar1} to ensure the leaves are
-  encountered before their parents.
-#+end_src
-#+begin_src go <<Compute x-coordinates>>=
-  xcoords := make([]float64, nodeId)
-  var curX float64
-  postorder(root, setX, &curX, dist, xcoords)
-#+end_src
-#+begin_src latex
-  We write the postorder traversal.
-#+end_src
-#+begin_src go <<Functions>>=
-  func postorder(v *Node, fn nodeAction, args ...interface{}) {
-	  if v != nil {
-		  postorder(v.child, fn, args...)
-		  fn(v, args...)
-		  postorder(v.sib, fn, args...)
-	  }
-  }
-#+end_src
-#+begin_src latex
-  The function \texttt{setX} retrieves the arguments just passed, and
-  places the node, which is either a leaf or a parent.
-#+end_src
-#+begin_src go <<Functions>>=
-  func setX(v *Node, args ...interface{}) {
-	  //<<Retrieve arguments>>
-	  if v.child == nil {
-		  //<<Place leaf>>
-	  } else {
-		  //<<Place parent>>
-	  }
-  }
-#+end_src
-#+begin_src latex
-  The arguments are retrieved via reflection.
-#+end_src
-#+begin_src go <<Retrieve arguments>>=
-  curX := args[0].(*float64)
-  dist := args[1].(float64)
-  xcoords := args[2].([]float64)
-#+end_src
-#+begin_src latex
-  The leaf is placed at the current x-position, which is then
-  incremented.
-#+end_src
-#+begin_src go <<Place leaf>>=
-  xcoords[v.id] = *curX
-  *curX = *curX + dist
-#+end_src
-#+begin_src latex
-  The parent is placed in the middle of its children.
-#+end_src	
-#+begin_src go <<Place parent>>=
-  x1 := xcoords[v.child.id]
-  cp := v.child
-  for cp.sib != nil {
-	  cp = cp.sib
-  }
-  x2 := xcoords[cp.id]
-  xcoords[v.id] = (x1 + x2) / 2.0
-#+end_src
-#+begin_src latex
-  Before printing the nodes, we declare the beginning of a
-  \texttt{pspicture}. Then we traverse the tree and apply the function
-  \texttt{writeNode} to each node.
-#+end_src
-#+begin_src go <<Print nodes>>=
-  fmt.Fprintf(w, "\\begin{pspicture}(0,0)(%.2f,%.2f)\n",
-	  width, float64(maxDepth)+0.7)
-  fmt.Fprint(w, "%% Nodes\n")
-  breadthFirst(root, writeLatexNode, w, xcoords, maxDepth)
-#+end_src
-#+begin_src latex
-  We place a node and identify it by its ID.
-#+end_src
-#+begin_src go <<Functions>>=
-  func writeLatexNode(v *Node, args ...interface{}) {
-	  w := args[0].(*bytes.Buffer)
-	  xcoords := args[1].([]float64)
-	  maxDepth := args[2].(int)
-	  y := maxDepth - v.depth
-	  x := xcoords[v.id]
-	  fmt.Fprintf(w, "\\dotnode(%.3g,%d){%d}\n",
-		  x, y, v.id)
-  }
-#+end_src
-#+begin_src latex
-  The match links are printed in a second traversal. They are light gray
-  with 2pt separation between the arrow and the start and the end node.
-#+end_src
-#+begin_src go <<Print match links>>=
-  fmt.Fprint(w, "%% Match links\n")
-  fmt.Fprintf(w, "\\psset{linecolor=lightgray,nodesep=2pt}")
-  breadthFirst(root, writeMatchLink, w)
-#+end_src
-#+begin_src latex
-  Except for the root, each node has one incoming match-link. 
-#+end_src
-#+begin_src go <<Functions>>=
-  func writeMatchLink(v *Node, args ...interface{}) {
-	  w := args[0].(*bytes.Buffer)
-	  if v.parent != nil {
-		  p := v.parent.id
-		  n := v.id
-		  c := v.in
-		  fmt.Fprintf(w, "\\ncline{->}{%d}{%d}" +
-			  "\\ncput[nrot=:U]{%c}\n",
-			  p, n, c)
-	  }
-  }
-#+end_src
-#+begin_src latex
-  Failure links are dotted arks $v\rightarrow\mbox{fail(v)}$. To draw
-  them, we need their relative x-positions of $v$ and $\mbox{fail}(v)$;
-  so the x-coordinates are passed into the computation.
-#+end_src
-#+begin_src go <<Print failure links>>=
-  fmt.Fprint(w, "%% Failure links\n")
-  fmt.Fprint(w, "\\psset{linestyle=dotted}\n")
-  breadthFirst(root, writeFailureLink, w, xcoords)
-#+end_src
-#+begin_src latex
-  The failure link for the root is special.
-#+end_src
-#+begin_src go <<Functions>>=
-  func writeFailureLink(v *Node, args ...interface{}) {
-	  w := args[0].(*bytes.Buffer)
-	  xcoords := args[1].([]float64)
-	  if v.parent == nil {
-		  //<<Write failure link for root>>
-	  } else {
-		  //<<Write failure link for non-root>>
-	  }
-  }
-#+end_src
-#+begin_src latex
-  After reading up on nodes and their connections in
-  \cite[p.162]{vos05:pst} and some trial and error, I found that the
-  root's self-referential failure link is best drawn with
-  \texttt{nccurve}.
-#+end_src
-#+begin_src go <<Write failure link for root>>=
-  fmt.Fprint(w, "\\nccurve[angleA=130,angleB=50,ncurv=6]" +
-	  "{->}{0}{0}\n")
-#+end_src
-#+begin_src latex
-  An ordinary failure link is either left-tilted or right-tilted.
-#+end_src
-#+begin_src go <<Write failure link for non-root>>=
-  angle := 50
-  x1 := xcoords[v.id]
-  x2 := xcoords[v.fail.id]
-  if x1 > x2 { angle = -50 }
-  fmt.Fprintf(w, "\\ncarc[arcangle=%d]{->}{%d}{%d}\n",
-	  angle, v.id, v.fail.id)
-#+end_src
-#+begin_src latex
-  The output sets are printed last, and we omit the newline from the
-  last line.
-#+end_src
-#+begin_src go <<Print output sets>>=
-  fmt.Fprint(w, "%% Output sets\n")
-  breadthFirst(root, writeOutputSet, w)
-  fmt.Fprintf(w, "\\end{pspicture}")
-#+end_src
-#+begin_src latex
-  Output sets of leaves are placed below them, output sets of other
-  nodes to their left.
-#+end_src
-#+begin_src go <<Functions>>=
-  func writeOutputSet(v *Node, args ...interface{}) {
-	  if len(v.output) == 0 { return }
-	  w := args[0].(*bytes.Buffer)
-	  angle := 0
-	  if v.child == nil { angle = -90 }
-	  fmt.Fprintf(w, "\\nput{%d}{%d}{\\{%d",
-		  angle, v.id, v.output[0]+1)
-	  for i := 1; i < len(v.output); i++ {
-		  fmt.Fprintf(w, ",%d", v.output[i]+1)
-	  }
-	  fmt.Fprint(w, "\\}}\n")
   }
 #+end_src
 #+begin_src latex
@@ -738,29 +567,60 @@
 
   We do this by following Algorithm~\ref{alg:sm2}, where the text is
   traversed using two kinds of actions: waking into the tree, and
-  following failure links. Notice the sentinel character terminating $T$
-  in the Algorithm. We use the zero byte for this purpose.
+  following failure links. Before returning the matches, we sort them.
 #+end_src
 #+begin_src go <<Methods>>=
   func (root *Node) Search(t []byte, p []string) []Match {
-	  t = append(t, 0)
-	  matches := make([]Match, 0)
+	  //<<Prepare search>>
 	  v := root
 	  j := 0
 	  for j < len(t) - 1 {
 		  //<<Walk into tree>>
 		  //<<Follow failure link>>
 	  }
+	  sort.Sort(MatchSlice(matches))
 	  return matches
   }
+#+end_src
+#+begin_src latex
+  By way of preparation, we first append the null character to $T$,
+  where it serves as sentinel that ensures $T$ doesn't end in a
+  match. In addition, we prepare variables for storing the matches.
+#+end_src
+#+begin_src go <<Prepare search>>=
+  t = append(t, 0)
+  matches := make([]Match, 0)
+  var match Match
 #+end_src
 #+begin_src latex
   A match consists of a position and a pattern identifier.
 #+end_src
 #+begin_src go <<Types>>=
   type Match struct {
-	  pos, pat int
+	  Position, Pattern int
   }
+#+end_src
+#+begin_src latex
+  To sort matches, we also declare the type \texttt{MatchSlice},
+#+end_src
+#+begin_src go <<Types>>=
+  type MatchSlice []Match
+#+end_src
+#+begin_src latex
+  and implement the sorting interface.
+#+end_src
+#+begin_src go <<Methods>>=
+  func (m MatchSlice) Len() int           { return len(m) }
+  func (m MatchSlice) Less(i, j int) bool {
+	  return m[i].Position < m[j].Position
+  }
+  func (m MatchSlice) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+#+end_src
+#+begin_src latex
+  We import \texttt{sort}.
+#+end_src
+#+begin_src go <<Imports>>=
+  "sort"
 #+end_src
 #+begin_src latex
   While walking into the tree, we store any match found on the
@@ -768,7 +628,7 @@
 #+end_src
 #+begin_src go <<Walk into tree>>=
   for c := v.findChild(t[j]); c != nil; c = v.findChild(t[j]) {
-	  if len(c.output) > 0 {
+	  if len(c.Output) > 0 {
 		  //<<Store matches>>
 	  }
 	  v = c
@@ -779,23 +639,21 @@
   A node might refer to several matches.
 #+end_src
 #+begin_src go <<Store matches>>=
-  for _, o := range c.output {
-	  match := *new(Match)
-	  match.pos = j - len(p[o]) + 1
-	  match.pat = o
+  for _, o := range c.Output {
+	  match.Position = j - len(p[o]) + 1
+	  match.Pattern = o
 	  matches = append(matches, match)
   }
-
 #+end_src
 #+begin_src latex
-  When we run out of matches, follow the failure link, unless you're at
-  the root, in which case, advance by one character.
+  When we run out of matches, follow the failure link, unless we're at
+  the root, in which case we advance by one character.
 #+end_src
 #+begin_src go <<Follow failure link>>=
-  if v.parent == nil {
+  if v.Parent == nil {
 	  j++
   } else {
-	  v = v.fail
+	  v = v.Fail
   }
 #+end_src
 
@@ -813,8 +671,8 @@
   //<<Testing functions>>
 #+end_src
 #+begin_src latex
-  The functions consist of two testing functions, and an auxiliary
-  function for constructing a keyword tree.
+  There are two testing functions and an auxiliary function for
+  constructing a keyword tree.
 #+end_src
 #+begin_src go <<Testing functions>>=
   func constructKt() (*Node, []string) {
@@ -828,8 +686,8 @@
   }
 #+end_src
 #+begin_src latex
-  The tree is built from the five patterns used throughout the examples,
-  for example in Figure~\ref{ch:kt1}E.
+  The tree is built from the five patterns used throughout, for example
+  in Figure~\ref{fig:kt1}E.
 #+end_src
 #+begin_src go <<Construct test tree>>=
   var p []string
@@ -847,7 +705,7 @@
 #+end_src
 #+begin_src go <<Test construction>>=
   tree, _ := constructKt()
-  get := tree.String() + "\n" + tree.WriteLatex() + "\n"
+  get := tree.String() + "\n"
   fn := "constr.txt"
   want, err := ioutil.ReadFile(fn)
   if err != nil {
@@ -865,7 +723,7 @@
   "bytes"
 #+end_src
 #+begin_src latex
-  When searching, we read a sequence and search it with out prefab
+  When searching, we read a sequence and search it with our prefab
   keyword tree, print the matches to a buffer and compare the results we
   get to the results we want.
 #+end_src
@@ -898,7 +756,7 @@
   "github.com/evolbioinf/fasta"
 #+end_src
 #+begin_src latex
-  A single function call returns the pattern matches in the sequence.
+  We construct the tree from the patterns and search the text.
 #+end_src
 #+begin_src go <<Search sequence>>=
   tree, p := constructKt()
@@ -910,7 +768,8 @@
 #+begin_src go <<Print matches to buffer>>=
   buf := new(bytes.Buffer)
   for _, match := range matches {
-	  fmt.Fprintf(buf, "%s:%d\n", p[match.pat], match.pos+1)
+	  fmt.Fprintf(buf, "%s:%d\n", p[match.Pattern],
+		  match.Position+1)
   }
   get := buf.Bytes()
 #+end_src

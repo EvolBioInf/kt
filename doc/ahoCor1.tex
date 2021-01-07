@@ -5,7 +5,7 @@
 \STATE{$v\leftarrow\mbox{root}$} \COMMENT{Initialize position in keyword tree}
 \REPEAT
 \WHILE{there is an edge $(v,v')$ labeled $T[j]$}
-\IF{$\mathrm{label}(v')=i$}
+\IF{$\mathrm{label}(v')=p_i$}
 \STATE{report match of $p_i$ at $j-|p_i|+1$}
 \ENDIF
 \STATE{$v\leftarrow v'$}
