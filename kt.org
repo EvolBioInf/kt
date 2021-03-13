@@ -1,163 +1,164 @@
 #+begin_src latex
-   \section{Introduction}
-   Programs like BLAST are based on exact matching of potentially large
-   sets of words, or \emph{patterns}, in a long \emph{text}. Such set
-   matching is often done using keyword trees~\cite{aho75:eff}. Say we'd
-   like to match the five patterns
-   \begin{center}
-     \begin{tabular}{ll}
-       $p_1$ & \texttt{ATTT}\\
-       $p_2$ & \texttt{ATTC}\\
-       $p_3$ & \texttt{AT}\\
-       $p_4$ & \texttt{TG}\\
-       $p_5$ & \texttt{TT}
-     \end{tabular}
-   \end{center}
+  \section{Introduction}
+  Programs like BLAST are based on exact matching of potentially large
+  sets of words, or \emph{patterns}, in a long \emph{text}. Such set
+  matching is often done using keyword trees~\cite{aho75:eff}. Say we'd
+  like to match the five patterns
+  \begin{center}
+    \begin{tabular}{ll}
+      $p_1$ & \texttt{ATTT}\\
+      $p_2$ & \texttt{ATTC}\\
+      $p_3$ & \texttt{AT}\\
+      $p_4$ & \texttt{TG}\\
+      $p_5$ & \texttt{TT}
+    \end{tabular}
+  \end{center}
 
-   The corresponding keyword tree consists of nodes, edges, and their
-   labels. It is constructed by inserting each pattern into a growing
-   intermediate tree. We begin with the first pattern, draw a root, node
-   1 in Figure~\ref{fig:kt1}A, and a node for each character in
-   $p_1$. Except for the root, each node, $v$, thus has one incoming edge
-   labeled with a character, $c=\mbox{in}(v)$.
+  The corresponding keyword tree consists of nodes, edges, and their
+  labels. It is constructed by inserting each pattern into a growing
+  intermediate tree. We begin with the first pattern, draw a root, node
+  1 in Figure~\ref{fig:kt1}A, and a node for each character in
+  $p_1$. Except for the root, each node, $v$, thus has one incoming edge
+  labeled with a character, $c=\mbox{in}(v)$.
 
-   The last node we add is labeled $p_1$ to mark that its path label,
-   that is, the concatenated characters of the path from the root to node
-   5, corresponds to $p_1$. Next, we add $p_2$ by matching it from the
-   root into the tree. The prefix \texttt{ATT} is found and extended at
-   node 4 by \texttt{C} (Figure~\ref{fig:kt1}B). Similarly, $p_3$ is
-   inserted, but stops at internal node 3, which is labeled $p_3$
-   (Figure~\ref{fig:kt1}C). The next patter, $p_4$, cannot be matched
-   into the tree, so it branches off at the root
-   (Figure~\ref{fig:kt1}D). This branch is branched at node 7 by the
-   addition of the last pattern, $p_5$ (Figure~\ref{fig:kt1}E).
+  The last node we add is labeled $p_1$ to mark that its path label,
+  that is, the concatenated characters of the path from the root to node
+  5, corresponds to $p_1$. Next, we add $p_2$ by matching it from the
+  root into the tree. The prefix \texttt{ATT} is found and extended at
+  node 4 by \texttt{C} (Figure~\ref{fig:kt1}B). Similarly, $p_3$ is
+  inserted, but stops at internal node 3, which is labeled $p_3$
+  (Figure~\ref{fig:kt1}C). The next patter, $p_4$, cannot be matched
+  into the tree, so it branches off at the root
+  (Figure~\ref{fig:kt1}D). This branch is branched at node 7 by the
+  addition of the last pattern, $p_5$ (Figure~\ref{fig:kt1}E).
 
-   Now each pattern is contained in the tree, and common prefixes such as
-   \texttt{ATT} are summarized into unique path labels. This compression
-   of common prefixes is the starting point for simultaneously searching
-   for all five patterns in a text like
-   \[
-   T=\texttt{ATGATTC}
-   \]
+  Now each pattern is contained in the tree, and common prefixes such as
+  \texttt{ATT} are summarized into unique path labels. This compression
+  of common prefixes is the starting point for simultaneously searching
+  for all five patterns in a text like
+  \[
+  T=\texttt{ATGATTC}
+  \]
 
-   \begin{figure}
-     \begin{center}
-       \resizebox{\textwidth}{!}{
-       \begin{tabular}{ccccc}
-	 \textbf{A} & \textbf{B} & \textbf{C}  & \textbf{D} & \textbf{E}\\
-	 \input{kt1a} & \input{kt1b} & \input{kt1c} & \input{kt1d} & \input{kt1e}
-       \end{tabular}
-       }
-     \end{center}
-     \caption{Stepwise construction of a keyword tree by adding
-       $p_1=\texttt{ATTT}$ (\textbf{A}), $p_2=\texttt{ATTC}$
-       (\textbf{B}), $p_3=\texttt{AT}$ (\textbf{C}), $p_4=\texttt{TG}$
-       (\textbf{D}), and $p_5=\texttt{TT}$ (\textbf{E}).}\label{fig:kt1}
-   \end{figure}
+  \begin{figure}
+    \begin{center}
+      \resizebox{\textwidth}{!}{
+      \begin{tabular}{ccccc}
+	\textbf{A} & \textbf{B} & \textbf{C}  & \textbf{D} & \textbf{E}\\
+	\input{kt1a} & \input{kt1b} & \input{kt1c} & \input{kt1d} & \input{kt1e}
+      \end{tabular}
+      }
+    \end{center}
+    \caption{Stepwise construction of a keyword tree by adding
+      $p_1=\texttt{ATTT}$ (\textbf{A}), $p_2=\texttt{ATTC}$
+      (\textbf{B}), $p_3=\texttt{AT}$ (\textbf{C}), $p_4=\texttt{TG}$
+      (\textbf{D}), and $p_5=\texttt{TT}$ (\textbf{E}).}\label{fig:kt1}
+  \end{figure}
 
-   Algorithm~\ref{alg:sm1} summarizes the steps for doing this. Matching
-   begins at the first position in $T$, and at the root of the tree
-   (lines 1 \& 2). While there is an edge $v\rightarrow v'$ labeled
-   $T[j]$ (line 4), check whether node $v'$ is labeled $p_i$ (line 5). If
-   so, output that $p_i$ was found (line 6). The match to $p_i$ ends at
-   $j$, but it is customary to report its start rather than its end. The
-   start is at $j-|p_i|+1$. Then move $v$ to $v'$ in the tree and advance
-   to the next character in the text (lines 8 \& 9). With our example
-   tree and text, we'd match \texttt{AT} and report finding $p_3$.
+  Algorithm~\ref{alg:sm1} summarizes the steps for doing this. Matching
+  begins at the first position in $T$, and at the root of the tree
+  (lines 1 \& 2). While there is an edge $v\rightarrow v'$ labeled
+  $T[j]$ (line 4), check whether node $v'$ is labeled $p_i$ (line 5). If
+  so, output that $p_i$ was found (line 6). The match to $p_i$ ends at
+  $j$, but it is customary to report its start rather than its end. The
+  start is at $j-|p_i|+1$. Then move $v$ to $v'$ in the tree and advance
+  to the next character in the text (lines 8 \& 9). With our example
+  tree and text, we'd match \texttt{AT} and report finding $p_3$.
 
-   \begin{algorithm}
-     \caption{Provisional set matching
-       algorithm~\cite{aho75:eff}.}\label{alg:sm1}
-     \begin{algorithmic}[1]
-       \input{ahoCor1}
-     \end{algorithmic}
-   \end{algorithm}
+  \begin{algorithm}
+    \caption{Provisional set matching
+      algorithm~\cite{aho75:eff}.}\label{alg:sm1}
+    \begin{algorithmic}[1]
+      \input{ahoCor1}
+    \end{algorithmic}
+  \end{algorithm}
 
-   We've now run out of matches, at which point we might be tempted to
-   give up and return to the root. However, the $\texttt{T}$ we last
-   matched can be extended to possibly discover the patterns that start
-   with a \texttt{T}, $p_4$ or $p_5$. Returning from node 3 to the root
-   would require matching that \texttt{T} a second time. To avoid this,
-   every node, $v$, has a \emph{failure link} connecting it to the node
-   with the longest path label that is a suffix of the path label of
-   $v$. The failure links of the root and its children are initialized
-   to the root. By default, the failure link of any other node, $v$, is
-   also the root. However, a more favorable failure link might be found
-   by visiting climbing the chain of failure links of $v$'s parent. The
-   first that has a child matching $v$ becomes the target of $v$'s
-   failure link In our example, the failure link of node 3 with path
-   label \texttt{AT} is node 7 with path label \texttt{T}. If no match
-   is found, the procedure is repeated until the root is reached. If no
-   failure link is found at all, use the root. Figure~\ref{fig:kt2}
-   shows our example tree with failure links.
+  We've now run out of matches, at which point we might be tempted to
+  give up and return to the root. However, the $\texttt{T}$ we last
+  matched can be extended to possibly discover the patterns that start
+  with a \texttt{T}, $p_4$ or $p_5$. Returning from node 3 to the root
+  would require matching that \texttt{T} a second time. To avoid this,
+  every node, $v$, has a \emph{failure link} connecting it to the node
+  with the longest path label that is a suffix of the path label of
+  $v$. The failure links of the root and its children are initialized to
+  the root. The remaining failure links are added in a breadth-first
+  traversal. By default, the failure link of any other node, $v$, is
+  also the root. However, a more favorable failure link might be found
+  by visiting climbing the chain of failure links of $v$'s parent. The
+  first that has a child matching $v$ becomes the target of $v$'s
+  failure link In our example, the failure link of node 3 with path
+  label \texttt{AT} is node 7 with path label \texttt{T}. If no match is
+  found, the procedure is repeated until the root is reached. If no
+  failure link is found at all, use the root. Figure~\ref{fig:kt2} shows
+  our example tree with failure links.
 
-   \begin{figure}
-     \begin{center}
-       \input{kt2}
-     \end{center}
-     \caption{The keyword tree in Figure~\ref{fig:kt1}E with failure links.}\label{fig:kt2}
-   \end{figure}
+  \begin{figure}
+    \begin{center}
+      \input{kt2}
+    \end{center}
+    \caption{The keyword tree in Figure~\ref{fig:kt1}E with failure links.}\label{fig:kt2}
+  \end{figure}
 
-   In this way we find in our example text $p_4$ and $p_2$. Now we see
-   the utility of the sentinel character, $\$$, which terminates
-   $T$. Without it, $T$ would end in a match and we'd attempt to access a
-   character beyond the end of $T$ in line 4.
+  In this way we find in our example text $p_4$ and $p_2$. Now we see
+  the utility of the sentinel character, $\$$, which terminates
+  $T$. Without it, $T$ would end in a match and we'd attempt to access a
+  character beyond the end of $T$ in line 4.
 
-   Another thing to realize at this stage of the algorithm is that by
-   walking down the path label of node 6 to find $p_2$, we've missed
-   $p_5$, the path label of node 9. This is fixed by constructing for
-   each node $v$ an \emph{output set} consisting of all the patterns
-   found following the failure links from $v$ to the
-   root. Figure~\ref{fig:kt3} shows Figure~\ref{fig:kt2} with output
-   sets, one of which, $\{p_1, p_5\}$, contains two patterns. Now,
-   whenever \texttt{ATT} has been matched, the match to \texttt{TT} is
-   also detected. Algorithm~\ref{alg:sm2} is derived from
-   Algorithm~\ref{alg:sm1} by amending the output routine in the
-   if-clause of lines 5--7.
+  Another thing to realize at this stage of the algorithm is that by
+  walking down the path label of node 6 to find $p_2$, we've missed
+  $p_5$, the path label of node 9. This is fixed by constructing for
+  each node $v$ an \emph{output set} consisting of all the patterns
+  found following the failure links from $v$ to the
+  root. Figure~\ref{fig:kt3} shows Figure~\ref{fig:kt2} with output
+  sets, one of which, $\{p_1, p_5\}$, contains two patterns. Now,
+  whenever \texttt{ATT} has been matched, the match to \texttt{TT} is
+  also detected. Algorithm~\ref{alg:sm2} is derived from
+  Algorithm~\ref{alg:sm1} by amending the output routine in the
+  if-clause of lines 5--7.
 
-   The application of Algorithm~\ref{alg:sm2} to our example text,
-   $T=\texttt{ATGATTC}$ gives the following results:
-   \begin{center}
-   \begin{tabular}{cl}
-     \hline
-     Position & Pattern\\\hline
-   1	& \texttt{AT}\\
-   2	& \texttt{TG}\\
-   4	& \texttt{AT}\\
-   5	& \texttt{TT}\\
-   4	& \texttt{ATTC}\\\hline
-   \end{tabular}
-   \end{center}
-   The last three matches start at positions 4, 5, and again 4. So
-   although we always move forward in $T$, the match positions are not
-   necessarily ordered. This may confuse the user and we shall therefore
-   order the match positions before returning them.
+  The application of Algorithm~\ref{alg:sm2} to our example text,
+  $T=\texttt{ATGATTC}$ gives the following results:
+  \begin{center}
+  \begin{tabular}{cl}
+    \hline
+    Position & Pattern\\\hline
+  1	& \texttt{AT}\\
+  2	& \texttt{TG}\\
+  4	& \texttt{AT}\\
+  5	& \texttt{TT}\\
+  4	& \texttt{ATTC}\\\hline
+  \end{tabular}
+  \end{center}
+  The last three matches start at positions 4, 5, and again 4. So
+  although we always move forward in $T$, the match positions are not
+  necessarily ordered. This may confuse the user and we shall therefore
+  order the match positions before returning them.
 
-   \begin{figure}
-     \begin{center}
-       \input{kt3}
-     \end{center}
-     \caption{The keyword tree in Figure~\ref{fig:kt2} with output sets.}\label{fig:kt3}
-   \end{figure}
+  \begin{figure}
+    \begin{center}
+      \input{kt3}
+    \end{center}
+    \caption{The keyword tree in Figure~\ref{fig:kt2} with output sets.}\label{fig:kt3}
+  \end{figure}
 
-   \begin{algorithm}
-     \caption{Final set matching
-       algorithm~\cite{aho75:eff}.}\label{alg:sm2}
-     \begin{algorithmic}[1]
-       \input{ahoCor2}
-     \end{algorithmic}
-   \end{algorithm}
+  \begin{algorithm}
+    \caption{Final set matching
+      algorithm~\cite{aho75:eff}.}\label{alg:sm2}
+    \begin{algorithmic}[1]
+      \input{ahoCor2}
+    \end{algorithmic}
+  \end{algorithm}
 
-   To summarize, we construct a keyword tree by adding patterns, setting
-   the failure links, and constructing the output sets. This tree can
-   then be used to efficiently look up the starting positions of all
-   patters in a text.
+  To summarize, we construct a keyword tree by adding patterns, setting
+  the failure links, and constructing the output sets. This tree can
+  then be used to efficiently look up the starting positions of all
+  patters in a text.
 
-   \section{Implementation}
-   !Package \texttt{kt} implements set matching using a keyword tree.
+  \section{Implementation}
+  !Package \texttt{kt} implements set matching using a keyword tree.
 
-   The package outline contains hooks for imports, types, variables,
-   methods, and functions.
+  The package outline contains hooks for imports, types, variables,
+  methods, and functions.
 #+end_src
 #+begin_src go <<kt.go>>=
   package kt
@@ -337,20 +338,63 @@
   }
 #+end_src
 #+begin_src latex
-  The function \texttt{BreadthFirst} takes as arguments the root
-  and a function applied to every node. This function might in turn have
+  Breadth-first tree traversal requires a queue.
+#+end_src
+#+begin_src go <<Types>>=
+  type queue []*Node
+#+end_src
+#+begin_src latex
+  A node can be added to the queue or gotten from it.
+#+end_src
+#+begin_src go <<Methods>>=
+  func (q *queue) add(n *Node) {
+	  *q = append(*q, n)
+  }
+  func (q *queue) get() *Node {
+	  n := (*q)[0]
+	  *q = (*q)[1:]
+	  return n
+  }
+#+end_src
+#+begin_src latex
+  The function \texttt{BreadthFirst} takes as arguments the root and a
+  function applied to every node. This function might in turn have
   arguments, which are also part of the argument list of
   \texttt{BreadthFirst}. In our case, the function is called
   \texttt{setFailureLink} and its argument is the default failure link,
-  the root.
+  the root. During traversal we first iterate over the siblings and then
+  find the next child.
 #+end_src
 #+begin_src go <<Functions>>=
   func BreadthFirst(v *Node, fn NodeAction, args ...interface{}) {
-	  if v != nil {
-		  BreadthFirst(v.Sib, fn, args...)
+	  q := new(queue)
+	  for v != nil {
 		  fn(v, args...)
-		  BreadthFirst(v.Child, fn, args...)
+		  q.add(v)
+		  v = v.Sib
+		  //<<Iterate over siblings>>
+		  //<<Find next child>>
 	  }
+  }
+#+end_src
+#+begin_src latex
+  Each sibling is visited and added to the queue.
+#+end_src
+#+begin_src go <<Iterate over siblings>>=
+  for v != nil {
+	  fn(v, args...)
+	  q.add(v)
+	  v = v.Sib
+  }
+#+end_src
+#+begin_src latex 
+  We take nodes from the queue until we find one with a child and move
+  to it.
+#+end_src
+#+begin_src go <<Find next child>>=
+  for v == nil && len(*q) > 0 {
+	  v = q.get()
+	  v = v.Child
   }
 #+end_src
 #+begin_src latex
@@ -703,16 +747,11 @@
 #+end_src
 #+begin_src go <<Construct test tree>>=
   var p []string
-
-  // p = append(p, "ATTT")
-  // p = append(p, "ATTC")
-  // p = append(p, "AT")
-  // p = append(p, "TG")
-  // p = append(p, "TT")
-
-  p = append(p, "TC")
-  p = append(p, "ATCA")
-
+  p = append(p, "ATTT")
+  p = append(p, "ATTC")
+  p = append(p, "AT")
+  p = append(p, "TG")
+  p = append(p, "TT")
   tree := NewKeywordTree(p)
   return tree, p
 #+end_src
