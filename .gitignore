@@ -1,4 +1,5 @@
 *.go
+!kt.go
 doc/*.aux
 doc/*.dvi
 doc/*.log
