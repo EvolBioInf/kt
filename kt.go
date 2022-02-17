@@ -175,10 +175,10 @@ func writeTree(v *Node, w *bytes.Buffer) {
 		fmt.Fprint(w, "(")
 	}
 	writeTree(v.Child, w)
+	label(v, w)
 	writeTree(v.Sib, w)
-	if v.Child != nil {
+	if v.Parent != nil && v.Sib == nil {
 		fmt.Fprint(w, ")")
-		label(v, w)
 	}
 	if v.Parent == nil {
 		fmt.Fprint(w, ";")

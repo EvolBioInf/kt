@@ -509,8 +509,10 @@
   Consider our example tree in Figure~\ref{fig:kt3}. Its Newick
   representation might look like
   \begin{verbatim}
-  ((((5[T->9{1,5}],6[C->1{2}])4[T->9{5}])3[T->7{3}],
-  (8[G->1{4}],9[T->7{5}])7[T->1])2[A->1])1[->1];
+  ((((5[T->9{1,5}]5[T->9{1,5}],
+  6[C->1{2}]6[C->1{2}])4[T->9{5}])3[T->7{3}])2[A->1],
+  (8[G->1{4}]8[G->1{4}],
+  9[T->7{5}]9[T->7{5}])7[T->1])1[->1];
   \end{verbatim}
   Here we have added comments to each node, for example
   \begin{verbatim}
@@ -567,10 +569,10 @@
 	  fmt.Fprint(w, "(")
   }
   writeTree(v.Child, w)
+  label(v, w)
   writeTree(v.Sib, w)
-  if v.Child != nil {
+  if v.Parent != nil && v.Sib == nil {
 	  fmt.Fprint(w, ")")
-	  label(v, w)
   }
 #+end_src
 #+begin_src latex
