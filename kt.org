@@ -479,14 +479,15 @@
   "bytes"
 #+end_src
 #+begin_src latex
-  The function \texttt{writeTree} writes the tree in Newick
-  format\footnote{\texttt{evolution.genetics.washington.edu/phylip/newick\char`_doc.html}}. This
-  consists of the following rules:
+  The function \texttt{writeTree} writes the tree in a slightly modified
+  version of the Newick
+  format\footnote{\texttt{evolution.genetics.washington.edu/phylip/newick\char`_doc.html}}. The
+  modification is that we label all nodes, not just the leaves as in
+  phylogenies. As a result, we get the following rules:
   \begin{eqnarray*}
     \mbox{tree} & \rightarrow & \mbox{children}[\mbox{label}][:\mbox{length}];\\
     \mbox{children} & \rightarrow & \left(\mbox{child} \{,\mbox{children}\}\right)\\
-    \mbox{child} & \rightarrow & \mbox{children}[\mbox{label}][:\mbox{length}]\\
-    & \rightarrow & \mbox{label}
+    \mbox{child} & \rightarrow & \mbox{children}[\mbox{label}][:\mbox{length}]
   \end{eqnarray*}
   These rules mean that
   \begin{itemize}
@@ -497,8 +498,7 @@
       commas.
     \item A child may in turn have children. In this case it is an
       \emph{internal node} and its children are followed by the child's
-      optional label and branch length. If the child has no children, it
-      is a \emph{leaf} represented by its label.
+      optional label and branch length.
   \end{itemize}
   In other words, elements in curly brackets may appear zero, one, or
   more than one times, and elements in square brackets may or may no
@@ -509,10 +509,8 @@
   Consider our example tree in Figure~\ref{fig:kt3}. Its Newick
   representation might look like
   \begin{verbatim}
-  ((((5[T->9{1,5}]5[T->9{1,5}],
-  6[C->1{2}]6[C->1{2}])4[T->9{5}])3[T->7{3}])2[A->1],
-  (8[G->1{4}]8[G->1{4}],
-  9[T->7{5}]9[T->7{5}])7[T->1])1[->1];
+    ((((5[T->9{1,5}],6[C->1{2}])4[T->9{5}])3[T->7{3}])2[A->1],
+    (8[G->1{4}],9[T->7{5}])7[T->1])1[->1];
   \end{verbatim}
   Here we have added comments to each node, for example
   \begin{verbatim}
@@ -523,11 +521,10 @@
   and $p_5$.
 
   To implement the four rewrite rules of the Newick format, we traverse
-  the tree and ask four questions about each node, $v$, one for each
+  the tree and ask three questions about each node, $v$, one for each
   rule:
   \begin{enumerate}
   \item Is $v$ not a first child?
-  \item Is $v$ a leaf?
   \item Is $v$ an internal node?
   \item Is $v$ the root?
   \end{enumerate}
@@ -536,7 +533,6 @@
   func writeTree(v *Node, w *bytes.Buffer) {
 	  if v == nil { return }
 	  //<<Is $v$ not a first child?>>
-	  //<<Is $v$ a leaf?>>
 	  //<<Is $v$ an internal node?>>
 	  //<<Is $v$ the root?>>
   }
@@ -552,17 +548,9 @@
   }
 #+end_src
 #+begin_src latex
-  If a node has no first child, it has no children at all and is hence a
-  leaf denoted by its label.
-#+end_src
-#+begin_src go <<Is $v$ a leaf?>>=
-  if v.Child == nil {
-	  label(v, w)
-  }
-#+end_src
-#+begin_src latex
   If $v$ does have at least one child, it is an internal node. In this
-  case the subtree rooted on $v$ is placed in parentheses.
+  case the subtree rooted on $v$ is placed in parentheses. We also label
+  the current node.
 #+end_src
 #+begin_src go <<Is $v$ an internal node?>>=
   if v.Child != nil {
