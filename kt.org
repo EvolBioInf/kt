@@ -653,14 +653,23 @@
   type MatchSlice []Match
 #+end_src
 #+begin_src latex
-  and implement the sorting interface.
+  and implement the sorting interface, where we first sort by position,
+  then by pattern identifier. The secondary sorting by pattern
+  identifier ensures identical output across runs.
 #+end_src
 #+begin_src go <<Methods>>=
-  func (m MatchSlice) Len() int           { return len(m) }
+  func (m MatchSlice) Len() int {
+	  return len(m)
+  }
   func (m MatchSlice) Less(i, j int) bool {
+	  if m[i].Position == m[j].Position {
+		  return m[i].Pattern < m[j].Pattern
+	  }
 	  return m[i].Position < m[j].Position
   }
-  func (m MatchSlice) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+  func (m MatchSlice) Swap(i, j int) {
+	  m[i], m[j] = m[j], m[i]
+  }
 #+end_src
 #+begin_src latex
   We import \texttt{sort}.
@@ -757,8 +766,8 @@
   if err != nil {
 	  t.Errorf("couldn't open %q", fn)
   }
-  if !bytes.Equal(want, []byte(get)) {
-	  t.Errorf("want:\n%s\nget:\n%s\n", want, get)
+  if !bytes.Equal([]byte(get), want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
   }
 #+end_src
 #+begin_src latex

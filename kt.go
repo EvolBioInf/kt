@@ -70,11 +70,18 @@ func (root *Node) Search(t []byte, p []string) []Match {
 	sort.Sort(MatchSlice(matches))
 	return matches
 }
-func (m MatchSlice) Len() int { return len(m) }
+func (m MatchSlice) Len() int {
+	return len(m)
+}
 func (m MatchSlice) Less(i, j int) bool {
+	if m[i].Position == m[j].Position {
+		return m[i].Pattern < m[j].Pattern
+	}
 	return m[i].Position < m[j].Position
 }
-func (m MatchSlice) Swap(i, j int) { m[i], m[j] = m[j], m[i] }
+func (m MatchSlice) Swap(i, j int) {
+	m[i], m[j] = m[j], m[i]
+}
 func NewKeywordTree(patterns []string) *Node {
 	root := new(Node)
 	for i, pattern := range patterns {
